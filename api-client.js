@@ -5,13 +5,14 @@
   const allowed = new Set('handleLogin getPublicInitData getDashboardData getStudentDashboardData getClassroomDashboard getStudentPetState adoptStudentPet renameStudentPet equipPetAccessory exportSettlementPdf submitScoresBulk updateStudentRecord markAnnouncementRead reviewRecord bulkGrantRewards bulkReviewScores savePetTopics updateLeaderboardConfig createAnnouncement updateAnnouncement compactLegacyRecords getDateDiagnostics getSavedSettlement importCompressedRecords markBulletinRead markTaskRead previewRecordCompaction previewSettlement reviewLearningTask saveBulletin saveClassroomSettings saveSettlement setTaskArchived submitLearningTask'.split(' '));
   async function call(action, args) {
     if (!allowed.has(action)) throw new Error('不支援此操作');
-    // Pre-login screens never request student names, points, or announcements.
-    if (action === 'getPublicInitData' && !sessionToken) return {leaderboard:[],config:{weeks:[],formula:[],noteTopics:[]}};
+    // Public login screen is limited to the explicitly published top three.
+    const publicRanking = action === 'getPublicInitData' && !sessionToken;
+    if (publicRanking) { action = 'getLoginLeaderboard'; args = []; }
     const apiUrl = window.CLASSROOM_CONFIG?.apiUrl || '';
     if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(apiUrl)) {
       throw new Error('網站尚未連接正式後端，請老師完成連線設定後再登入。');
     }
-    if (action !== 'handleLogin' && !sessionToken) throw new Error('請重新登入');
+    if (action !== 'handleLogin' && !publicRanking && !sessionToken) throw new Error('請重新登入');
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 60000);
     try {

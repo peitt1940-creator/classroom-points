@@ -1,0 +1,13 @@
+.env
+.env.*
+.clasp.json
+.clasprc.json
+*credentials*
+*secret*
+*.csv
+*.xlsx
+*.zip
+private/
+source/
+original/
+node_modules/
